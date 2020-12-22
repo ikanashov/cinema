@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS content.film_type (
 );
 
 -- m2m-таблица для связывания кинопроизведений с типами
-CREATE TABLE IF NOT EXISTS content.genre_film_work (
+CREATE TABLE IF NOT EXISTS content.type_film_work (
     id uuid PRIMARY KEY,
     film_work_id uuid NOT NULL,
     type_id uuid NOT NULL,
@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS content.genre_film_work (
 );
 
 -- Обязательно проверяется уникальность типа и кинопроизведения, чтобы не появлялось дублей
-CREATE UNIQUE INDEX film_work_genre ON content.genre_film_work (film_work_id, type_id);
+CREATE UNIQUE INDEX film_work_type ON content.type_film_work (film_work_id, type_id);
 
 -- Обобщение для актёра, режиссёра и сценариста
 CREATE TABLE IF NOT EXISTS content.person (
@@ -101,6 +101,7 @@ CREATE UNIQUE INDEX film_work_person_role ON content.person_film_work (film_work
 -- Создаем схему для загрузки данных из imdb 
 CREATE SCHEMA IF NOT EXISTS imdb;
 
+-- Contains the following information for titles
 CREATE TABLE IF NOT EXISTS imdb.title_basics (
     tconst TEXT PRIMARY KEY,
     titleType TEXT NOT NULL,
@@ -113,6 +114,7 @@ CREATE TABLE IF NOT EXISTS imdb.title_basics (
     genres TEXT
 );
 
+-- Contains the following information for names
 CREATE TABLE IF NOT EXISTS imdb.name_basics (
     nconst TEXT PRIMARY KEY,
     primaryName TEXT NOT NULL,
@@ -122,6 +124,7 @@ CREATE TABLE IF NOT EXISTS imdb.name_basics (
     knownForTitles TEXT
 );
 
+-- Contains the tv episode information
 CREATE TABLE IF NOT EXISTS imdb.title_episode (
     tconst TEXT PRIMARY KEY,
     parentTconst TEXT NOT NULL,
