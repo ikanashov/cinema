@@ -1,3 +1,6 @@
+#postgres db production
+db/production
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
