@@ -1,2 +1,2 @@
-# cinema
+# E-cinema
 E-cinema
