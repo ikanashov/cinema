@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS content.person_film_work (
     migrated_from TEXT,
     created_at timestamp with time zone,
     FOREIGN KEY (film_work_id) REFERENCES content.film_work (id) ON DELETE CASCADE,
-    FOREIGN KEY (person_id) REFERENCES content.person (id) ON DELETE CASCADE,
+    FOREIGN KEY (person_id) REFERENCES content.person (id) ON DELETE CASCADE
 );
 
 -- Обязательно проверяется уникальность кинопроизведения, человека и роли человека, чтобы не появлялось дублей
