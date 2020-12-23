@@ -1,5 +1,11 @@
 #postgres db production
 db/production
+name.basics.tsv
+title.basics.tsv
+title.episode.tsv
+name.basics.tsv.gz
+title.basics.tsv.gz
+title.episode.tsv.gz
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
