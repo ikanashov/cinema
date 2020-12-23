@@ -1,5 +1,6 @@
 import os
 import time
+import http.client
 
 
 from dotenv import load_dotenv
@@ -42,10 +43,26 @@ class IMDBMovies:
                 # Read line with header
                 tsvfile.readline()
                 self.copy_to_table_from_csv(table, tsvfile)
+    
+    def get_imdb_id_by_https(self, imdb_tconst: str) -> str:
+        conn = http.client.HTTPSConnection('www.imdb.com')
+        conn.request('GET', f'/title/{imdb_tconst}/')
+        response = conn.getresponse()
+        if response.code == 301:
+            dictheaders = [(value) for key,value in response.getheaders() if key == 'Location']
+            url = dictheaders[0]
+            imdb_tconst = url.split('/')[2]
+            return imdb_tconst
+        else:
+            return None
+        
 
 
 if __name__ == '__main__':
+    empty_id = ['tt0281088', 'tt1037715', 'tt2208084', 'tt0429437', 'tt3124492', 'tt0414758', 'tt1498189', 'tt0112271']
     start = time.time()
-    IMDBMovies().load_data_from_tsv()
+    #IMDBMovies().load_data_from_tsv()
+    for movie_id in empty_id:
+        print(IMDBMovies().get_imdb_id_by_https(movie_id))
     end = time.time()
     print('Read tsv imdb files and write to postgres: ', (end-start), 'sec')
