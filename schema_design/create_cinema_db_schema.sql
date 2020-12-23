@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS content.film_work (
     imdb_pconst TEXT, -- Для произведений с сериями (родительское произведение)
     title TEXT NOT NULL,
     description TEXT,
-    creation_date DATE NOT NULL,
+    creation_date DATE,
     end_date DATE, -- Для произведений с сериями дата выхода последней серии 
     certificate TEXT, -- Возрастные ограничения
     file_path TEXT,
@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS content.film_work (
 );
 
 -- Информация о жанрах
-CREATE TABLE IF NOT EXISTS content.genre (
+CREATE TABLE IF NOT EXISTS content.film_genre (
     id uuid PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT,
@@ -33,18 +33,18 @@ CREATE TABLE IF NOT EXISTS content.genre (
 );
 
 -- m2m-таблица для связывания кинопроизведений с жанрами
-CREATE TABLE IF NOT EXISTS content.genre_film_work (
+CREATE TABLE IF NOT EXISTS content.film_work_genre (
     id uuid PRIMARY KEY,
     film_work_id uuid NOT NULL,
     genre_id uuid NOT NULL,
     migrated_from TEXT,
     created_at timestamp with time zone,
     FOREIGN KEY (film_work_id) REFERENCES content.film_work (id) ON DELETE CASCADE,
-    FOREIGN KEY (genre_id) REFERENCES content.genre (id) ON DELETE CASCADE
+    FOREIGN KEY (genre_id) REFERENCES content.film_genre (id) ON DELETE CASCADE
 );
 
 -- Обязательно проверяется уникальность жанра и кинопроизведения, чтобы не появлялось дублей
-CREATE UNIQUE INDEX film_work_genre ON content.genre_film_work (film_work_id, genre_id);
+CREATE UNIQUE INDEX film_work_genre_ind ON content.film_work_genre (film_work_id, genre_id);
 
 -- Информация о типах
 CREATE TABLE IF NOT EXISTS content.film_type (
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS content.film_type (
 );
 
 -- m2m-таблица для связывания кинопроизведений с типами
-CREATE TABLE IF NOT EXISTS content.type_film_work (
+CREATE TABLE IF NOT EXISTS content.film_work_type (
     id uuid PRIMARY KEY,
     film_work_id uuid NOT NULL,
     type_id uuid NOT NULL,
@@ -67,14 +67,14 @@ CREATE TABLE IF NOT EXISTS content.type_film_work (
 );
 
 -- Обязательно проверяется уникальность типа и кинопроизведения, чтобы не появлялось дублей
-CREATE UNIQUE INDEX film_work_type ON content.type_film_work (film_work_id, type_id);
+CREATE UNIQUE INDEX film_work_type_ind ON content.film_work_type (film_work_id, type_id);
 
 -- Обобщение для актёра, режиссёра и сценариста
-CREATE TABLE IF NOT EXISTS content.person (
+CREATE TABLE IF NOT EXISTS content.film_person (
     id uuid PRIMARY KEY,
     imdb_nconst TEXT NOT NULL, 
     full_name TEXT NOT NULL,
-    birth_date DATE NOT NULL,
+    birth_date DATE,
     death_date DATE,
     migrated_from TEXT,
     created_at timestamp with time zone,
@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS content.person (
 );
 
 -- m2m-таблица для связывания кинопроизведений с участниками
-CREATE TABLE IF NOT EXISTS content.person_film_work (
+CREATE TABLE IF NOT EXISTS content.film_work_person (
     id uuid PRIMARY KEY,
     film_work_id uuid NOT NULL,
     person_id uuid NOT NULL,
@@ -91,15 +91,25 @@ CREATE TABLE IF NOT EXISTS content.person_film_work (
     migrated_from TEXT,
     created_at timestamp with time zone,
     FOREIGN KEY (film_work_id) REFERENCES content.film_work (id) ON DELETE CASCADE,
-    FOREIGN KEY (person_id) REFERENCES content.person (id) ON DELETE CASCADE
+    FOREIGN KEY (person_id) REFERENCES content.film_person (id) ON DELETE CASCADE
 );
 
 -- Обязательно проверяется уникальность кинопроизведения, человека и роли человека, чтобы не появлялось дублей
 -- Один человек может быть сразу в нескольких ролях (например, сценарист и режиссёр)
-CREATE UNIQUE INDEX film_work_person_role ON content.person_film_work (film_work_id, person_id, role);
+CREATE UNIQUE INDEX film_work_person_role_ind ON content.film_work_person (film_work_id, person_id, role);
 
 -- Создаем схему для загрузки данных из imdb 
 CREATE SCHEMA IF NOT EXISTS imdb;
+
+-- Contains the following information for names
+CREATE TABLE IF NOT EXISTS imdb.name_basics (
+    nconst TEXT PRIMARY KEY,
+    primaryName TEXT NOT NULL,
+    birthYear TEXT,
+    deathYear TEXT,
+    primaryProfession TEXT,
+    knownForTitles TEXT
+);
 
 -- Contains the following information for titles
 CREATE TABLE IF NOT EXISTS imdb.title_basics (
@@ -114,20 +124,14 @@ CREATE TABLE IF NOT EXISTS imdb.title_basics (
     genres TEXT
 );
 
--- Contains the following information for names
-CREATE TABLE IF NOT EXISTS imdb.name_basics (
-    nconst TEXT PRIMARY KEY,
-    primaryName TEXT NOT NULL,
-    birthYear DATE NOT NULL,
-    deathYear DATE,
-    primaryProfession TEXT,
-    knownForTitles TEXT
-);
-
 -- Contains the tv episode information
 CREATE TABLE IF NOT EXISTS imdb.title_episode (
     tconst TEXT PRIMARY KEY,
     parentTconst TEXT NOT NULL,
-    seasonNumber INTEGER NOT NULL,
-    episodeNumber INTEGER NOT NULL
+    seasonNumber INTEGER,
+    episodeNumber INTEGER
 );
+
+-- Создаем индекс для поиска произведений и актеров по имени
+CREATE INDEX imdb_name_basics_name ON imdb.name_basics (primaryName);
+CREATE INDEX imdb_title_basics_title ON imdb.title_basics (primaryTitle);
