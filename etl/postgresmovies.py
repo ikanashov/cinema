@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 
 import psycopg2
 
-from etlclasses import Genre, MoviesToPostgres, Person
-from etlclasses import film_genre, film_person, film_work, genre_film_work, person_film_work
+from etlclasses import MoviesGenre, MoviesPerson, MoviesToPostgres
+from etlclasses import film_genre, film_person, film_work, film_work_genre, film_work_person
 
 
 class NewMovies:
@@ -68,14 +68,14 @@ class NewMovies:
             options='-c search_path=content',
         )
 
-    def check_film_genre(self, genre: Genre) -> film_genre:
+    def check_film_genre(self, genre: MoviesGenre) -> film_genre:
         with self.conn.cursor() as cur:
             cur.execute(self.SQLGETONEGENRE, (genre.name,))
             row = cur.fetchone()
         if row:
             return film_genre(*row)
 
-    def add_film_genre(self, genre: Genre) -> film_genre:
+    def add_film_genre(self, genre: MoviesGenre) -> film_genre:
         now = datetime.now(timezone.utc)
         newgenre = (str(uuid.uuid4()), genre.name, genre.name, f'from movie_id = {genre.migrated_from}', now, now)
         with self.conn as conn, conn.cursor() as cur:
@@ -84,7 +84,7 @@ class NewMovies:
         if row:
             return film_genre(*row)
 
-    def get_or_add_film_genre(self, genre: Genre) -> film_genre:
+    def get_or_add_film_genre(self, genre: MoviesGenre) -> film_genre:
         film_genre = self.check_film_genre(genre)
         if film_genre:
             return film_genre
@@ -92,14 +92,14 @@ class NewMovies:
             film_genre = self.add_film_genre(genre)
             return film_genre
 
-    def check_film_person(self, person: Person) -> film_person:
+    def check_film_person(self, person: MoviesPerson) -> film_person:
         with self.conn.cursor() as cur:
             cur.execute(self.SQLGETONEPERSON, (person.name,))
             row = cur.fetchone()
         if row:
             return film_person(*row)
 
-    def add_film_person(self, person: Person) -> film_person:
+    def add_film_person(self, person: MoviesPerson) -> film_person:
         now = datetime.now(timezone.utc)
         newperson = (str(uuid.uuid4()), person.name, None, f'imported old_id = {person.migrated_from}', now, now)
         with self.conn as conn, conn.cursor() as cur:
@@ -108,7 +108,7 @@ class NewMovies:
         if row:
             return film_person(*row)
 
-    def get_or_add_film_person(self, person: Person) -> film_person:
+    def get_or_add_film_person(self, person: MoviesPerson) -> film_person:
         film_person = self.check_film_person(person)
         if film_person:
             return film_person
@@ -132,7 +132,7 @@ class NewMovies:
         if row:
             return film_work(*row)
 
-    def add_genre_film_work(self, genre: genre_film_work) -> genre_film_work:
+    def add_genre_film_work(self, genre: film_work_genre) -> film_work_genre:
         film_genre = (str(uuid.uuid4()),
                       genre.film_work_id, genre.genre_id,
                       genre.migrated_from, datetime.now(timezone.utc))
@@ -140,10 +140,10 @@ class NewMovies:
             cur.execute(self.SQLINSERTGENREFW, film_genre)
             row = cur.fetchone()
         if row:
-            return genre_film_work(*row)
+            return film_work_genre(*row)
 
     def add_person_film_work(
-            self, role: str, film_work_id: str, person_id: str, migrated_from: str) -> person_film_work:
+            self, role: str, film_work_id: str, person_id: str, migrated_from: str) -> film_work_person:
         film_person = (str(uuid.uuid4()),
                        film_work_id, person_id, role,
                        migrated_from, datetime.now(timezone.utc))
@@ -151,7 +151,7 @@ class NewMovies:
             cur.execute(self.SQLINSERTPERSONFW, film_person)
             row = cur.fetchone()
         if row:
-            return person_film_work(*row)
+            return film_work_person(*row)
 
     def add_or_get_film_work(self, movie: MoviesToPostgres) -> film_work:
         film_work = self.check_film_work(movie)
@@ -161,7 +161,7 @@ class NewMovies:
             new_film_work = self.add_film_work(movie)
             for genre in movie.genres:
                 film_genre = self.get_or_add_film_genre(genre)
-                self.add_genre_film_work(genre_film_work(None, new_film_work.id, film_genre.id, movie.id, None))
+                self.add_genre_film_work(film_work_genre(None, new_film_work.id, film_genre.id, movie.id, None))
             for person in movie.persons:
                 film_person = self.get_or_add_film_person(person)
                 self.add_person_film_work(person.role, new_film_work.id, film_person.id, movie.id)

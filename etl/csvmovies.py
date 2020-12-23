@@ -3,8 +3,8 @@ import io
 import uuid
 from datetime import datetime, timezone
 
-from etlclasses import Genre, MoviesToPostgres, Person
-from etlclasses import film_genre, film_person, film_work, genre_film_work, person_film_work
+from etlclasses import MoviesGenre, MoviesPerson, MoviesToPostgres
+from etlclasses import film_genre, film_person, film_work, film_work_genre, film_work_person
 
 
 class CsvMovies:
@@ -14,7 +14,7 @@ class CsvMovies:
     genresfilmworks: dict = {}
     personsfilmworks: dict = {}
 
-    def get_or_add_film_genre(self, genre: Genre) -> film_genre:
+    def get_or_add_film_genre(self, genre: MoviesGenre) -> film_genre:
         try:
             filmgenre = self.genres[genre.name]
         except KeyError:
@@ -24,7 +24,7 @@ class CsvMovies:
         finally:
             return film_genre(*filmgenre)
 
-    def get_or_add_film_person(self, person: Person) -> film_person:
+    def get_or_add_film_person(self, person: MoviesPerson) -> film_person:
         try:
             filmperson = self.persons[person.name]
         except KeyError:
@@ -48,7 +48,7 @@ class CsvMovies:
         self.filmworks[filmuuid] = filmwork
         return film_work(*filmwork)
 
-    def add_genre_film_work(self, genre: genre_film_work) -> genre_film_work:
+    def add_genre_film_work(self, genre: film_work_genre) -> film_work_genre:
         gfwuuid = str(uuid.uuid4())
         genrefilmwork = (
             gfwuuid,
@@ -56,10 +56,10 @@ class CsvMovies:
             genre.migrated_from, datetime.now(timezone.utc)
         )
         self.genresfilmworks[gfwuuid] = genrefilmwork
-        return genre_film_work(*genrefilmwork)
+        return film_work_genre(*genrefilmwork)
 
     def add_person_film_work(
-            self, role: str, film_work_id: str, person_id: str, migrated_from: str) -> person_film_work:
+            self, role: str, film_work_id: str, person_id: str, migrated_from: str) -> film_work_person:
         pfwuuid = str(uuid.uuid4())
         personfilmwork = (
             pfwuuid,
@@ -67,13 +67,13 @@ class CsvMovies:
             migrated_from, datetime.now(timezone.utc)
         )
         self.personsfilmworks[pfwuuid] = personfilmwork
-        return person_film_work(*personfilmwork)
+        return film_work_person(*personfilmwork)
 
     def add_or_get_film_work(self, movie: MoviesToPostgres) -> film_work:
         new_film_work = self.add_film_work(movie)
         for genre in movie.genres:
             filmgenre = self.get_or_add_film_genre(genre)
-            self.add_genre_film_work(genre_film_work(None, new_film_work.id, filmgenre.id, movie.id, None))
+            self.add_genre_film_work(film_work_genre(None, new_film_work.id, filmgenre.id, movie.id, None))
         for person in movie.persons:
             filmperson = self.get_or_add_film_person(person)
             self.add_person_film_work(person.role, new_film_work.id, filmperson.id, movie.id)

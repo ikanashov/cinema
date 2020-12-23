@@ -2,7 +2,7 @@ import json
 import sqlite3
 from typing import List
 
-from etlclasses import Genre, Movies, MoviesToPostgres, Person
+from etlclasses import Movies, MoviesGenre, MoviesPerson, MoviesToPostgres
 
 
 class SQLiteMoviesDB:
@@ -54,7 +54,7 @@ class SQLiteMoviesDB:
             self.rating_to_float(movie.imdb_rating),
             )
 
-    def get_actors_by_movie(self, movie: Movies) -> List[Person]:
+    def get_actors_by_movie(self, movie: Movies) -> List[MoviesPerson]:
         cursor = self.moviedbconn.cursor()
         try:
             cursor.execute(self.SQLGETACTORSBYMOVIESID, (movie.id,))
@@ -66,10 +66,10 @@ class SQLiteMoviesDB:
         finally:
             cursor.close()
         actors = list(set(actors))
-        actors = [Person(*actor) for actor in actors]
+        actors = [MoviesPerson(*actor) for actor in actors]
         return actors
 
-    def get_writers_by_movie(self, movie: Movies) -> List[Person]:
+    def get_writers_by_movie(self, movie: Movies) -> List[MoviesPerson]:
         if (movie.writer != ''):
             writers = [('writer', self.get_writer_by_id(movie.writer), movie.writer)]
         else:
@@ -78,16 +78,16 @@ class SQLiteMoviesDB:
                 for writer in json.loads(movie.writers)
                 ]
         writers = list(set(writers))
-        writers = [Person(*writer) for writer in writers]
+        writers = [MoviesPerson(*writer) for writer in writers]
         return writers
 
-    def get_directors_by_movie(self, movie: Movies) -> List[Person]:
+    def get_directors_by_movie(self, movie: Movies) -> List[MoviesPerson]:
         directors = [
             ('director', director.replace('(co-director)', ''), movie.id)
             for director in movie.director.split(', ')
            ]
         directors = list(set(directors))
-        directors = [Person(*director) for director in directors]
+        directors = [MoviesPerson(*director) for director in directors]
         return directors
 
     def get_writer_by_id(self, writer_id: str) -> str:
@@ -107,8 +107,8 @@ class SQLiteMoviesDB:
         persons = [person for person in persons if person.name != 'N/A']
         return persons
 
-    def get_genres_by_movie(self, movie: Movies) -> List[Genre]:
-        genres = [Genre(genre, movie.id) for genre in movie.genre.split(', ')]
+    def get_genres_by_movie(self, movie: Movies) -> List[MoviesGenre]:
+        genres = [MoviesGenre(genre, movie.id) for genre in movie.genre.split(', ')]
         return genres
 
     def rating_to_float(self, imdb_rating: str) -> float:
