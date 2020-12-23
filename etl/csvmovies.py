@@ -8,25 +8,25 @@ from etlclasses import film_genre, film_person, film_work, film_work_genre, film
 
 
 class CsvMovies:
-    genres: dict = {}
-    persons: dict = {}
+    filmgenres: dict = {}
+    filmpersons: dict = {}
     filmworks: dict = {}
-    genresfilmworks: dict = {}
-    personsfilmworks: dict = {}
+    filmworkgenres: dict = {}
+    filmworkpersons: dict = {}
 
     def get_or_add_film_genre(self, genre: MoviesGenre) -> film_genre:
         try:
-            filmgenre = self.genres[genre.name]
+            filmgenre = self.filmgenres[genre.name]
         except KeyError:
             now = datetime.now(timezone.utc)
             filmgenre = (str(uuid.uuid4()), genre.name, genre.name, f'from id = {genre.migrated_from}', now, now)
-            self.genres[genre.name] = filmgenre
+            self.filmgenres[genre.name] = filmgenre
         finally:
             return film_genre(*filmgenre)
 
     def get_or_add_film_person(self, person: MoviesPerson) -> film_person:
         try:
-            filmperson = self.persons[person.name]
+            filmperson = self.filmpersons[person.name]
         except KeyError:
             now = datetime.now(timezone.utc)
             filmperson = (
@@ -37,7 +37,7 @@ class CsvMovies:
                 now,
                 now
             )
-            self.persons[person.name] = filmperson
+            self.filmpersons[person.name] = filmperson
         finally:
             return film_person(*filmperson)
 
@@ -55,7 +55,7 @@ class CsvMovies:
             genre.film_work_id, genre.genre_id,
             genre.migrated_from, datetime.now(timezone.utc)
         )
-        self.genresfilmworks[gfwuuid] = genrefilmwork
+        self.filmworkgenres[gfwuuid] = genrefilmwork
         return film_work_genre(*genrefilmwork)
 
     def add_person_film_work(
@@ -66,7 +66,7 @@ class CsvMovies:
             film_work_id, person_id, role,
             migrated_from, datetime.now(timezone.utc)
         )
-        self.personsfilmworks[pfwuuid] = personfilmwork
+        self.filmworkpersons[pfwuuid] = personfilmwork
         return film_work_person(*personfilmwork)
 
     def add_or_get_film_work(self, movie: MoviesToPostgres) -> film_work:
