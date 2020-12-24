@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 
 from etlclasses import MoviesGenre, MoviesPerson, MoviesToPostgres
 from etlclasses import film_genre, film_person, film_work, film_work_genre, film_work_person
+from imdbmovies import IMDBMovies
 
 
 class CsvMovies:
@@ -44,7 +45,24 @@ class CsvMovies:
     def add_film_work(self, movie: MoviesToPostgres) -> film_work:
         now = datetime.now(timezone.utc)
         filmuuid = str(uuid.uuid4())
-        filmwork = (filmuuid, movie.title, movie.plot, None, '', '', movie.imdb_rating, '', movie.id, now, now)
+        imdb_data = IMDBMovies().get_imdb_movie_by_id(movie.id)
+        try:
+            creation_date = datetime.date(int(imdb_data.startyear), 1, 1)
+        except ValueError:
+            creation_date = None
+        try:
+            end_date = datetime.date(int(imdb_data.endyear), 1, 1)
+        except ValueError:
+            end_date = None
+        certificate = ''
+        if imdb_data.isadult:
+            certificate = 'Adult'
+        filmwork = (
+            filmuuid, imdb_data.tconst, imdb_data.pconst,
+            movie.title, movie.plot,
+            creation_date, end_date, certificate, movie.imdb_rating,
+            imdb_data.season_number, imdb_data.episode_number,
+            now, now)
         self.filmworks[filmuuid] = filmwork
         return film_work(*filmwork)
 

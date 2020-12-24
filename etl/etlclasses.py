@@ -145,3 +145,16 @@ class imdb_title_episode:
     parenttconst: str
     season_number: int
     episode_number: int
+
+
+@dataclass
+class imdb_to_postgres:
+    tconst: str
+    pconst: str
+    titletype: str
+    primarytitle: str
+    isadult: bool
+    startyear: datetime.date
+    endyear: datetime.date
+    season_number: int
+    episode_number: int
