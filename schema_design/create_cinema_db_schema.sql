@@ -17,8 +17,7 @@ CREATE TABLE IF NOT EXISTS content.film_work (
     season_number INTEGER, -- Для произведений с сериями номер сезона 
     episode_number INTEGER, -- Для произведений с сериями номер серии 
     created_at timestamp with time zone,
-    updated_at timestamp with time zone,
-    UNIQUE (imdb_tconst)
+    updated_at timestamp with time zone
 );
 
 -- Информация о жанрах
@@ -72,14 +71,13 @@ CREATE UNIQUE INDEX film_work_type_ind ON content.film_work_type (film_work_id, 
 -- Обобщение для актёра, режиссёра и сценариста
 CREATE TABLE IF NOT EXISTS content.film_person (
     id uuid PRIMARY KEY,
-    imdb_nconst TEXT NOT NULL, 
+    imdb_nconst TEXT, 
     full_name TEXT NOT NULL,
     birth_date DATE,
     death_date DATE,
     migrated_from TEXT,
     created_at timestamp with time zone,
-    updated_at timestamp with time zone,
-    UNIQUE (imdb_nconst)
+    updated_at timestamp with time zone
 );
 
 -- m2m-таблица для связывания кинопроизведений с участниками

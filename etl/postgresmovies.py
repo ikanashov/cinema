@@ -44,28 +44,28 @@ class NewMovies:
                                       migrated_from, created_at)
                                 VALUES (%s, %s, %s, %s, %s, %s)
                                 RETURNING *'''
-    SQLCREATEGENREINDEX = '''CREATE UNIQUE INDEX film_work_genre
-                                ON content.genre_film_work (film_work_id, genre_id)'''
-    SQLCREATEPERSONINDEX = '''CREATE UNIQUE INDEX film_work_person_role
-                                ON content.person_film_work (film_work_id, person_id, role)'''
-    SQLDROPGENREINDEX = '''DROP INDEX film_work_genre'''
-    SQLDROPPERSONINDEX = '''DROP INDEX film_work_person_role'''
+    SQLCREATEGENREINDEX = '''CREATE UNIQUE INDEX film_work_genre_ind
+                                ON content.film_work_genre (film_work_id, genre_id)'''
+    SQLCREATETYPEINDEX = '''CREATE UNIQUE INDEX film_work_type_ind
+                                ON content.film_work_type (film_work_id, type_id)'''
+    SQLCREATEPERSONINDEX = '''CREATE UNIQUE INDEX film_work_person_role_ind
+                                ON content.film_work_person (film_work_id, person_id, role)'''
+    SQLDROPGENREINDEX = '''DROP INDEX film_work_genre_ind'''
+    SQLDROPTYPEINDEX = '''DROP INDEX film_work_type_ind'''    
+    SQLDROPPERSONINDEX = '''DROP INDEX film_work_person_role_ind'''
 
-    def __init__(self):
-        dotenv_path = os.path.join(os.path.dirname(__file__), '../postgresql/.env')
+    def __init__(self, envfile='../.env'):
+        dotenv_path = os.path.join(os.path.dirname(__file__), envfile)
         if os.path.exists(dotenv_path):
             load_dotenv(dotenv_path)
-            POSTGRES_DB = os.getenv('POSTGRES_DB')
-            POSTGRES_USER = os.getenv('POSTGRES_USER')
-            POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
 
         self.conn = psycopg2.connect(
-            dbname=POSTGRES_DB,
-            user=POSTGRES_USER,
-            password=POSTGRES_PASSWORD,
-            host='localhost',
-            port=5432,
-            options='-c search_path=content',
+            dbname=os.getenv('POSTGRES_DB', 'postgres'),
+            user=os.getenv('POSTGRES_USER', 'postgres'),
+            password=os.getenv('POSTGRES_PASSWORD', ''),
+            host=os.getenv('POSTGRES_HOST', 'localhost'),
+            port=int(os.getenv('POSTGRES_PORT', '5432')),
+            options='-c search_path=' + os.getenv('POSTGRES_SCHEMA', 'public'),
         )
 
     def check_film_genre(self, genre: MoviesGenre) -> film_genre:
@@ -171,6 +171,10 @@ class NewMovies:
         with self.conn as conn, conn.cursor() as cur:
             cur.execute(self.SQLDROPGENREINDEX)
 
+    def drop_film_type_index(self):
+        with self.conn as conn, conn.cursor() as cur:
+            cur.execute(self.SQLDROPTYPEINDEX)
+
     def drop_film_person_index(self):
         with self.conn as conn, conn.cursor() as cur:
             cur.execute(self.SQLDROPPERSONINDEX)
@@ -178,6 +182,10 @@ class NewMovies:
     def create_film_genre_index(self):
         with self.conn as conn, conn.cursor() as cur:
             cur.execute(self.SQLCREATEGENREINDEX)
+
+    def create_film_type_index(self):
+        with self.conn as conn, conn.cursor() as cur:
+            cur.execute(self.SQLCREATETYPEINDEX)
 
     def create_film_person_index(self):
         with self.conn as conn, conn.cursor() as cur:
