@@ -7,6 +7,9 @@ name.basics.tsv.gz
 title.basics.tsv.gz
 title.episode.tsv.gz
 
+#django venv
+cinema_admin/cinemavenv/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
