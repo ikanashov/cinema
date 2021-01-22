@@ -49,6 +49,7 @@ class film_genre:
     created_at: datetime
     updated_at: datetime
 
+
 @dataclass
 class DJFilmGenre:
     created: datetime
