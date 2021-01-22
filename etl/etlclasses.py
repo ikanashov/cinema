@@ -49,6 +49,15 @@ class film_genre:
     created_at: datetime
     updated_at: datetime
 
+@dataclass
+class DJFilmGenre:
+    created: datetime
+    modified: datetime
+    id: uuid.UUID
+    name: str
+    description: str
+    migrated_from: str
+
 
 @dataclass
 class film_person:
@@ -63,12 +72,33 @@ class film_person:
 
 
 @dataclass
+class DJFilmPerson:
+    created: datetime
+    modified: datetime
+    id: uuid.UUID
+    full_name: str    
+    imdb_nconst: str
+    birth_date: datetime.date
+    death_date: datetime.date
+    migrated_from: str
+
+
+@dataclass
 class film_type:
     id: uuid.UUID
     name: str
     description: str
     created_at: datetime
     updated_at: datetime
+
+
+@dataclass
+class DJFilmType:
+    created: datetime
+    modified: datetime
+    id: uuid.UUID
+    name: str
+    description: str
 
 
 @dataclass
@@ -90,12 +120,40 @@ class film_work:
 
 
 @dataclass
+class DJFilmWork:
+    created: datetime
+    modified: datetime
+    id: uuid.UUID
+    imdb_tconst: str
+    imdb_pconst: str
+    title: str
+    description: str
+    creation_date: datetime.date
+    end_date: datetime.date
+    certificate: str
+    file_path: str
+    rating: float
+    season_number: int
+    episode_number: int
+    type_id: uuid.UUID
+
+
+@dataclass
 class film_work_genre:
     id: uuid.UUID
     film_work_id: uuid.UUID
     genre_id: uuid.UUID
     migrated_from: str
     created_at: datetime
+
+
+@dataclass
+class DJFilmWorkGenre:
+    id: uuid.UUID
+    migrated_from: str
+    created: datetime
+    film_work_id: uuid.UUID
+    genre_id: uuid.UUID
 
 
 @dataclass
@@ -106,6 +164,16 @@ class film_work_person:
     role: str
     migrated_from: str
     created_at: datetime
+
+
+@dataclass
+class DJFilmWorkPerson:
+    id: uuid.UUID
+    migrated_from: str
+    created: datetime
+    role: str
+    film_work_id: uuid.UUID
+    person_id: uuid.UUID
 
 
 @dataclass
