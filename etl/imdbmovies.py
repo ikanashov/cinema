@@ -78,8 +78,12 @@ class IMDBMovies:
         if row:
             return imdb_to_postgres(*row)
         else:
+            #old_id = movie_id
             movie_id = self.get_imdb_id_by_https(movie_id)
             row = self.pg_single_query(self.SQLGETIMDBBYID, (movie_id,))
+            #lst = list(row)
+            #lst[0] = old_id + '_' + movie_id
+            #row = tuple(lst)
         if row:
             return imdb_to_postgres(*row)
 

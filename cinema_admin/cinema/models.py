@@ -24,7 +24,7 @@ class FilmGenre(TimeStampedWithId):
     class Meta:
         verbose_name = (_('жанр'))
         verbose_name_plural = (_('жанры'))
-        db_table = 'django.film_genre'
+        db_table = 'djfilmgenre'
 
     def __str__(self) -> str:
         return self.name
@@ -37,7 +37,7 @@ class FilmType(TimeStampedWithId):
     class Meta:
         verbose_name = (_('тип'))
         verbose_name_plural = (_('типы'))
-        db_table = 'django.film_type'
+        db_table = 'djfilmtype'
 
     def __str__(self) -> str:
         return self.name
@@ -53,7 +53,7 @@ class FilmPerson(TimeStampedWithId):
     class Meta:
         verbose_name = (_('участник съёмочной группы'))
         verbose_name_plural = (_('участники съёмочной группы'))
-        db_table = 'django.film_person'
+        db_table = 'djfilmperson'
 
     def __str__(self) -> str:
         return self.full_name
@@ -66,15 +66,8 @@ class FilmCrewRole(models.TextChoices):
 
 
 class FilmWork(TimeStampedWithId):
-    imdb_tconst = models.CharField(_('imbd id'), max_length=255, unique=True)
-    imdb_pconst = models.ForeignKey(
-        'self',
-        db_column='imdb_pconst',
-        to_field='imdb_tconst',
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        )
+    imdb_tconst = models.CharField(_('imdb id'), max_length=255)
+    imdb_pconst = models.CharField(_('imdb parrent'), max_length=255, blank=True, null=True)
     title = models.CharField(_('название'), max_length=255)
     description = models.TextField(_('описание'), blank=True)
     creation_date = models.DateField(_('дата создания'))
@@ -95,7 +88,7 @@ class FilmWork(TimeStampedWithId):
     class Meta:
         verbose_name = (_('кинопроизведение'))
         verbose_name_plural = (_('кинопроизведения'))
-        db_table = 'django.film_work'
+        db_table = 'djfilmwork'
 
     def __str__(self) -> str:
         return self.title
@@ -118,7 +111,7 @@ class FilmWorkGenre(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['genre', 'film_work'], name='uniquie_film_genre')
         ]
-        db_table = 'django.film_work_genre'
+        db_table = 'djfilmworkgenre'
         verbose_name = _('жанр кинопроизведения')
         verbose_name_plural = _('жанры кинопроизведения')
 
@@ -144,7 +137,7 @@ class FilmWorkPerson(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['role', 'person', 'film_work'], name='uniquie_film_work_person_role')
         ]
-        db_table = 'django.film_work_person'
+        db_table = 'djfilmworkperson'
         verbose_name = _('участник съёмочной группы')
         verbose_name_plural = _('съёмочная группа')
 

@@ -11,7 +11,7 @@ from etlclasses import MoviesGenre, MoviesPerson, MoviesToPostgres
 from etlclasses import imdb_to_postgres, imdb_name_basics
 
 
-class CsvMovies:
+class DJCsvMovies:
     filmgenres: dict = {}
     filmpersons: dict = {}
     filmtypes: dict = {}
@@ -38,15 +38,15 @@ class CsvMovies:
             try:
                 nconst = imdb_person.nconst
             except AttributeError:
-                nconst = None
+                nconst = '\\N'
             try:
                 birth_date = date(int(imdb_person.birthyear), 1, 1)
             except (ValueError, TypeError, AttributeError):
-                birth_date = None
+                birth_date = '\\N'
             try:
                 death_date = date(int(imdb_person.deathyear), 1, 1)
             except (ValueError, TypeError, AttributeError):
-                death_date = None
+                death_date = '\\N'
             filmperson = (
                 now,
                 now,
@@ -79,15 +79,23 @@ class CsvMovies:
         try:
             end_date = date(int(imdb_data.endyear), 1, 1)
         except (ValueError, TypeError):
-            end_date = None
+            end_date = '\\N'
         certificate = ''
         if imdb_data.isadult:
             certificate = 'Adult'
+        if imdb_data.season_number:
+            season_number = imdb_data.season_number
+        else:
+            season_number = '\\N'
+        if imdb_data.episode_number:
+            episode_number = imdb_data.episode_number
+        else:
+            episode_number = '\\N'
         filmwork = (
             now, now, filmuuid, imdb_data.tconst,
             movie.title, movie.plot,
             creation_date, end_date, certificate, '', movie.imdb_rating,
-            imdb_data.season_number, imdb_data.episode_number,
+            season_number, episode_number,
             imdb_data.pconst, type_id
         )
         self.filmworks[filmuuid] = filmwork
