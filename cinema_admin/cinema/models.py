@@ -51,8 +51,8 @@ class FilmPerson(TimeStampedWithId):
     migrated_from = models.CharField(_('мигрировано'), max_length=255, blank=True)
 
     class Meta:
-        verbose_name = (_('участник съёмочной группы'))
-        verbose_name_plural = (_('участники съёмочной группы'))
+        verbose_name = (_('персона'))
+        verbose_name_plural = (_('персоны'))
         db_table = 'djfilmperson'
 
     def __str__(self) -> str:
@@ -116,7 +116,7 @@ class FilmWorkGenre(models.Model):
         verbose_name_plural = _('жанры кинопроизведения')
 
     def __str__(self):
-        return f'{self.film_work_id.title}  {self.genre_id.name}'
+        return f'Film: "{self.film_work.title}"  Genre: "{self.genre.name}"'
 
 
 class FilmWorkPerson(models.Model):
