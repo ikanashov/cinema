@@ -3,12 +3,12 @@ import io
 import uuid
 from datetime import date, datetime, timezone
 
-from imdbmovies import IMDBMovies
-
 from etlclasses import MoviesGenre, MoviesPerson, MoviesToPostgres
 from etlclasses import film_genre, film_person, film_type, film_work
 from etlclasses import film_work_genre, film_work_person, film_work_type
-from etlclasses import imdb_to_postgres, imdb_name_basics
+from etlclasses import imdb_name_basics, imdb_to_postgres
+
+from imdbmovies import IMDBMovies
 
 
 class CsvMovies:
@@ -35,7 +35,7 @@ class CsvMovies:
             filmperson = self.filmpersons[person.name]
         except KeyError:
             now = datetime.now(timezone.utc)
-            id = str(uuid.uuid4()) 
+            id = str(uuid.uuid4())
             try:
                 nconst = imdb_person.nconst
             except AttributeError:

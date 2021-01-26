@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.contrib.admin.options import TabularInline
 
 from .models import FilmGenre, FilmPerson, FilmType, FilmWork, FilmWorkGenre, FilmWorkPerson
 
@@ -10,11 +9,11 @@ class GenreAdmin(admin.ModelAdmin):
         'name',
         'description'
     )
-
-
-@admin.register(FilmPerson)
-class PersonAdmin(admin.ModelAdmin):
-    pass
+    search_fields = ('name', )
+    fields = (
+        'name',
+        'description',
+    )
 
 
 @admin.register(FilmType)
@@ -33,11 +32,17 @@ class FilmGenreInline(admin.TabularInline):
 class FilmWorkPersonInline(admin.TabularInline):
     model = FilmWorkPerson
     extra = 0
+    fields = (
+        'person',
+        'film_work',
+        'role',
+    )
 
 
 @admin.register(FilmWork)
 class FilmWorkAdmin(admin.ModelAdmin):
     list_display = (
+        'imdb_tconst',
         'title',
         'type',
         'creation_date'
@@ -46,25 +51,37 @@ class FilmWorkAdmin(admin.ModelAdmin):
         'type',
         'genres',
     )
-    fields = (
+    search_fields = (
         'title',
-        'type',
-        'rating',
-        'creation_date',
-        'end_date',
         'imdb_tconst',
-        #'genres',
+    )
+    fields = (
+        ('title', 'type', 'rating', ),
+        ('creation_date', 'end_date', ),
+        ('imdb_tconst', 'imdb_pconst', ),
+        'description',
         'certificate',
         'file_path',
-        'description'
-        #'crew'
+        ('season_number', 'episode_number', ),
     )
     inlines = [
         FilmGenreInline,
         FilmWorkPersonInline,
     ]
-    #imdb_pconst = models.CharField(_('imdb parrent'), max_length=255, blank=True, null=True)
-    #description = models.TextField(_('описание'), blank=True)
-    #end_date = models.DateField(_('дата завершения'), blank=True, null=True)
-    #season_number = models.PositiveSmallIntegerField(_('сезон'), blank=True, null=True)
-    #episode_number = models.PositiveSmallIntegerField(_('эпизод'), blank=True, null=True)
+
+
+@admin.register(FilmWorkPerson)
+class FilmWorkPersonAdmin(admin.ModelAdmin):
+    list_filter = (
+        'role',
+    )
+
+
+@admin.register(FilmPerson)
+class PersonAdmin(admin.ModelAdmin):
+    search_fields = [
+        'full_name',
+    ]
+    inlines = [
+        FilmWorkPersonInline,
+    ]

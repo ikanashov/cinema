@@ -51,7 +51,7 @@ class NewMovies:
     SQLCREATEPERSONINDEX = '''CREATE UNIQUE INDEX film_work_person_role_ind
                                 ON content.film_work_person (film_work_id, person_id, role)'''
     SQLDROPGENREINDEX = '''DROP INDEX film_work_genre_ind'''
-    SQLDROPTYPEINDEX = '''DROP INDEX film_work_type_ind'''    
+    SQLDROPTYPEINDEX = '''DROP INDEX film_work_type_ind'''
     SQLDROPPERSONINDEX = '''DROP INDEX film_work_person_role_ind'''
 
     def __init__(self, envfile='../.env'):

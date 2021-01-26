@@ -4,8 +4,8 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import fields, indexes
 from django.utils.translation import gettext_lazy as _
-from model_utils.fields import AutoCreatedField
 
+from model_utils.fields import AutoCreatedField
 from model_utils.models import TimeStampedModel
 
 
@@ -52,7 +52,7 @@ class FilmPerson(TimeStampedWithId):
 
     class Meta:
         verbose_name = (_('персона'))
-        verbose_name_plural = (_('персоны'))
+        verbose_name_plural = (_('люди'))
         db_table = 'djfilmperson'
 
     def __str__(self) -> str:
@@ -142,5 +142,4 @@ class FilmWorkPerson(models.Model):
         verbose_name_plural = _('съёмочная группа')
 
     def __str__(self):
-        return f'{self.film_work.title}  {self.person.full_name}'
-
+        return f'{self.person.full_name} - {self.film_work.title} - {self.role}'

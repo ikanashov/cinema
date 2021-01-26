@@ -77,7 +77,7 @@ class DJFilmPerson:
     created: datetime
     modified: datetime
     id: uuid.UUID
-    full_name: str    
+    full_name: str
     imdb_nconst: str
     birth_date: datetime.date
     death_date: datetime.date

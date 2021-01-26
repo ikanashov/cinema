@@ -1,6 +1,5 @@
-import os
-import time
 import http.client
+import os
 
 from dotenv import load_dotenv
 
@@ -16,12 +15,12 @@ class IMDBMovies:
         'title_episode': '../db/title.episode.tsv',
     }
     SQLGETIMDBBYID = '''SELECT tb.tconst, te.parenttconst, tb.titletype, tb.primarytitle, tb.isadult,
-                           tb.startyear, tb.endyear, te.seasonnumber, te.episodenumber 
-                        FROM imdb.title_basics as tb 
-                        LEFT JOIN imdb.title_episode as te on te.tconst = tb.tconst 
+                           tb.startyear, tb.endyear, te.seasonnumber, te.episodenumber
+                        FROM imdb.title_basics as tb
+                        LEFT JOIN imdb.title_episode as te on te.tconst = tb.tconst
                         WHERE tb.tconst = %s'''
     SQLGETPERSONBYNAME = 'SELECT * FROM imdb.name_basics WHERE primaryname = %s'
-    
+
     def __init__(self, envfile='../.env'):
         dotenv_path = os.path.join(os.path.dirname(__file__), envfile)
         if os.path.exists(dotenv_path):
@@ -50,17 +49,17 @@ class IMDBMovies:
                 # Read line with header
                 tsvfile.readline()
                 self.copy_to_table_from_csv(table, tsvfile)
-    
+
     def get_imdb_id_by_https(self, imdb_tconst: str) -> str:
         conn = http.client.HTTPSConnection('www.imdb.com')
         conn.request('GET', f'/title/{imdb_tconst}/')
         response = conn.getresponse()
         if response.code == 301:
-            dictheaders = [(value) for key,value in response.getheaders() if key == 'Location']
+            dictheaders = [(value) for key, value in response.getheaders() if key == 'Location']
             url = dictheaders[0]
             imdb_tconst = url.split('/')[2]
             return imdb_tconst
-    
+
     def pg_single_query(self, sqlquery: str, queryargs: tuple) -> tuple:
         with self.conn as conn, conn.cursor() as cur:
             cur.execute(sqlquery, queryargs)
@@ -78,12 +77,8 @@ class IMDBMovies:
         if row:
             return imdb_to_postgres(*row)
         else:
-            #old_id = movie_id
             movie_id = self.get_imdb_id_by_https(movie_id)
             row = self.pg_single_query(self.SQLGETIMDBBYID, (movie_id,))
-            #lst = list(row)
-            #lst[0] = old_id + '_' + movie_id
-            #row = tuple(lst)
         if row:
             return imdb_to_postgres(*row)
 
@@ -110,7 +105,7 @@ class IMDBMovies:
             imdb_name = imdb_name_basics(*name)
             if imdb_name.knownfortitles:
                 return imdb_name_basics(*name)
-      
+
 
 if __name__ == '__main__':
     pass

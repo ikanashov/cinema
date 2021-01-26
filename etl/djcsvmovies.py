@@ -3,12 +3,12 @@ import io
 import uuid
 from datetime import date, datetime, timezone
 
-from imdbmovies import IMDBMovies
-
-from etlclasses import DJFilmGenre, DJFilmPerson, DJFilmWork, DJFilmType
+from etlclasses import DJFilmGenre, DJFilmPerson, DJFilmType, DJFilmWork
 from etlclasses import DJFilmWorkGenre, DJFilmWorkPerson
 from etlclasses import MoviesGenre, MoviesPerson, MoviesToPostgres
-from etlclasses import imdb_to_postgres, imdb_name_basics
+from etlclasses import imdb_name_basics, imdb_to_postgres
+
+from imdbmovies import IMDBMovies
 
 
 class DJCsvMovies:
@@ -28,13 +28,13 @@ class DJCsvMovies:
             self.filmgenres[genre.name] = filmgenre
         finally:
             return DJFilmGenre(*filmgenre)
-      
+
     def get_or_add_film_person(self, person: MoviesPerson, imdb_person: imdb_name_basics) -> DJFilmPerson:
         try:
             filmperson = self.filmpersons[person.name]
         except KeyError:
             now = datetime.now(timezone.utc)
-            id = str(uuid.uuid4()) 
+            id = str(uuid.uuid4())
             try:
                 nconst = imdb_person.nconst
             except AttributeError:
