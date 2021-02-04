@@ -10,8 +10,8 @@ INSTALLED_APPS += [
 MIDDLEWARE += [
     'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
-
-LOGGING = {
+#not bogging but logging
+BOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
     'filters': {
