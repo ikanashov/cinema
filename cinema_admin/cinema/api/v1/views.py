@@ -27,7 +27,7 @@ class Movies(BaseListView):
             'total_pages': paginator.num_pages,
             'prev': None,
             'next': None,
-            'result': []
+            'results': []
         }
         if currentpage.has_previous():
             context['prev'] = currentpage.previous_page_number()
@@ -47,7 +47,7 @@ class Movies(BaseListView):
                 'writers': list(film.crew.filter(filmworkperson__role=FilmCrewRole.WRITER).values_list('full_name', flat=True)),
             }
             if is_paginated:
-                context['result'].append(film_dict)
+                context['results'].append(film_dict)
             else:
                 return film_dict
         return context

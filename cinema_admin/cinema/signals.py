@@ -12,5 +12,3 @@ def congratulatory(sender, instance, created, **kwargs):
         print('*******************************************************')
         print()
         print()
-
-print('##############################################')
