@@ -22,7 +22,7 @@ SECRET_KEY = 'gqoit08iq*f(3p#*sw_^chbma)w^you^nfrodm2xe803xa=#tk'
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    'dev.usurt.ru',
+     os.getenv('DJANGO_HOST', 'localhost'),
 ]
 
 

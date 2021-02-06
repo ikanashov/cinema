@@ -1,0 +1,22 @@
+version: '3'
+services:
+  testetlcinema:
+    container_name: testcinemaETL
+    environment:
+      - POSTGRES_DB=$POSTGRES_DB
+      - POSTGRES_USER=$POSTGRES_USER
+      - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+      - POSTGRES_HOST=$POSTGRES_HOST #Как-то надо передать имя хоста докера
+      - POSTGRES_PORT=$POSTGRES_PORT
+      - POSTGRES_SCHEMA=$POSTGRES_SCHEMA
+    build: .
+    image: testetlcinema
+    networks:
+      - test_cinema_net
+networks:
+  test_cinema_net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.14.0/24     
