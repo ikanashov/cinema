@@ -27,7 +27,8 @@ services:
       - DJANGO_HOST=$DJANGO_HOST
       - DJANGO_PORT=$DJANGO_PORT
     build: ./cinema_admin
-    command: ./manage.py runserver 0.0.0.0:$DJANGO_PORT
+    #command: ./manage.py runserver 0.0.0.0:$DJANGO_PORT
+    command: uwsgi --http :$DJANGO_PORT --module config.wsgi
     ports:
       - $DJANGO_PORT:$DJANGO_PORT
     networks: 

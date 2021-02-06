@@ -11,6 +11,24 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
+from dotenv import load_dotenv
+
+
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.dev')
 
+LOCALENVIROMENTPATH = '../../'
+
+def load_local_env():
+    envfile = LOCALENVIROMENTPATH + '.env'
+    dotenv_path = os.path.join(os.path.dirname(__file__), envfile)
+    if os.path.exists(dotenv_path):
+        load_dotenv(dotenv_path)
+    else:
+        print()
+        print('!!!WARNING!!!')
+        print(f'Local environment file (.env) not found in path:"{LOCALENVIROMENTPATH}".')
+        print('Default configuration will be used.')
+
+
+load_local_env()
 application = get_wsgi_application()
