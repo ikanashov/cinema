@@ -14,9 +14,8 @@ from django.core.wsgi import get_wsgi_application
 from dotenv import load_dotenv
 
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.dev')
-
 LOCALENVIROMENTPATH = '../../'
+
 
 def load_local_env():
     envfile = LOCALENVIROMENTPATH + '.env'
@@ -27,7 +26,7 @@ def load_local_env():
         print()
         print('!!!WARNING!!!')
         print(f'Local environment file (.env) not found in path:"{LOCALENVIROMENTPATH}".')
-        print('Default configuration will be used.')
+        print('Default or docker-compose configuration will be used.')
 
 
 load_local_env()

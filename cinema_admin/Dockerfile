@@ -11,6 +11,8 @@ RUN pip install --upgrade pip && pip install --prefix=/install -r /requirements/
 FROM base                                                                                                                     
                                                                                                                               
 COPY --from=builder /install /usr/local                                                                                       
+RUN apk --no-cache add libpq
+
+COPY docker-entrypoint.sh /docker-entrypoint.sh
 COPY . /cinema_admin
-RUN apk --no-cache add libpq                                                                                                  
 WORKDIR /cinema_admin

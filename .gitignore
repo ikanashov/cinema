@@ -11,6 +11,9 @@ title.episode.tsv.gz
 cinema_admin/cinemavenv/
 etl/etlvenv/
 
+#django static
+cinema_admin/config/static/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

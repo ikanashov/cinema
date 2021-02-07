@@ -1,13 +1,13 @@
+from cinema.apps import CinemaConfig
+from cinema.models import FilmCrewRole, FilmWork
+
 from django.http import JsonResponse
 from django.views.generic.list import BaseListView
-
-from cinema.models import FilmWork, FilmCrewRole
-from cinema.apps import CinemaConfig
 
 
 class Movies(BaseListView):
     model = FilmWork
-    queryset =  model.objects.select_related('type')
+    queryset = model.objects.select_related('type')
     ordering = 'id'
     paginate_by = CinemaConfig.movies_per_page
     http_method_names = ['get']
@@ -16,10 +16,10 @@ class Movies(BaseListView):
     def get_queryset(self):
         pk = self.kwargs.get(self.pk_url_kwarg)
         if pk:
-            self.queryset = self.queryset.filter(id__exact=pk) 
+            self.queryset = self.queryset.filter(id__exact=pk)
         queryset = super().get_queryset()
         return queryset
-   
+
     def get_context_data(self, *, object_list=None, **kwargs):
         paginator, currentpage, pageobjects, is_paginated = self.paginate_queryset(self.get_queryset(), self.paginate_by)
         context = {
@@ -42,9 +42,15 @@ class Movies(BaseListView):
                 'rating': film.rating,
                 'type': film.type.name,
                 'genres': list(film.genres.values_list('name', flat=True)),
-                'actors': list(film.crew.filter(filmworkperson__role=FilmCrewRole.ACTOR).values_list('full_name', flat=True)),
-                'directors': list(film.crew.filter(filmworkperson__role=FilmCrewRole.DIRECTOR).values_list('full_name', flat=True)),
-                'writers': list(film.crew.filter(filmworkperson__role=FilmCrewRole.WRITER).values_list('full_name', flat=True)),
+                'actors': list(
+                    film.crew.filter(filmworkperson__role=FilmCrewRole.ACTOR).values_list('full_name', flat=True)
+                ),
+                'directors': list(
+                    film.crew.filter(filmworkperson__role=FilmCrewRole.DIRECTOR).values_list('full_name', flat=True)
+                ),
+                'writers': list(
+                    film.crew.filter(filmworkperson__role=FilmCrewRole.WRITER).values_list('full_name', flat=True)
+                ),
             }
             if is_paginated:
                 context['results'].append(film_dict)
