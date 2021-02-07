@@ -6,7 +6,7 @@ from etlclasses import Movies, MoviesGenre, MoviesPerson, MoviesToPostgres
 
 
 class SQLiteMoviesDB:
-    SQLITEBASE = '../db/db.sqlite'
+    SQLITEBASE = 'db/db.sqlite'
     SQLGETALLMOVIES = 'SELECT * FROM movies'
     SQLGETONEMOVIE = 'SELECT * FROM movies where id = ?'
     SQLGETACTORSBYMOVIESID = ('SELECT "actor", actors.name, movie_actors.actor_id '

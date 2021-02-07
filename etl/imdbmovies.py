@@ -10,9 +10,9 @@ from etlclasses import imdb_name_basics, imdb_to_postgres
 
 class IMDBMovies:
     TSVTABLES = {
-        'name_basics': '../db/name.basics.tsv',
-        'title_basics': '../db/title.basics.tsv',
-        'title_episode': '../db/title.episode.tsv',
+        'name_basics': 'db/name.basics.tsv',
+        'title_basics': 'db/title.basics.tsv',
+        'title_episode': 'db/title.episode.tsv',
     }
     SQLGETIMDBBYID = '''SELECT tb.tconst, te.parenttconst, tb.titletype, tb.primarytitle, tb.isadult,
                            tb.startyear, tb.endyear, te.seasonnumber, te.episodenumber
