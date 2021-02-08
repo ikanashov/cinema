@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Забираем переменные настройки postgreSQL для поключения 
 source .env
