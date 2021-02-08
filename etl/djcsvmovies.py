@@ -92,11 +92,10 @@ class DJCsvMovies:
         else:
             episode_number = '\\N'
         filmwork = (
-            now, now, filmuuid, imdb_data.tconst,
+            now, now, filmuuid, imdb_data.tconst, imdb_data.pconst,
             movie.title, movie.plot,
             creation_date, end_date, certificate, '', movie.imdb_rating,
-            season_number, episode_number,
-            imdb_data.pconst, type_id
+            season_number, episode_number, type_id
         )
         self.filmworks[filmuuid] = filmwork
         return DJFilmWork(*filmwork)
