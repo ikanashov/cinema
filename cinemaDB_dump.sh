@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/bin/sh
 
 # Забираем переменные настройки postgreSQL для поключения 
-source ../.env
+source .env
 POSTGRES_URI="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:5432/${POSTGRES_DB}"
 
 #Делаем полный дамп базы данных
