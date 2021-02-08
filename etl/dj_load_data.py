@@ -30,7 +30,8 @@ def load_from_sqlite():
 
 
 if __name__ == '__main__':
+    print('Load data from sqlite to django...')
     start = time.time()
     load_from_sqlite()
     end = time.time()
-    print('Read tsv imdb files and write to postgres: ', (end-start), 'sec')
+    print('Read from sqlite and write to postgres: ', (end-start), 'sec')
