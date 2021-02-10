@@ -31,6 +31,7 @@ POSTGRES_PORT=7654
 POSTGRES_SCHEMA=public,imdb
 DJANGO_HOST=dev.usurt.ru
 DJANGO_PORT=8354
+DJANGO_SECRET=<>
 NGINX_HTTP_PORT=8080
 ```
 
@@ -43,6 +44,7 @@ POSTGRES_SCHEMA - для корректной работы надо остави
 DJANGO_HOST - внешнее имя хоста с которого будет доступна админка django  
 DJANGO_PORT - порт по которому будет доступен django внутри сети docker-compose  
 NGINX_HTTP_PORT - внешний порт для веб-сервера nginx  
+DJANGO_SECRET - секрет для Django (можно сгенерировать с помощью команды ```openssl rand -hex 32```)  
   
 После создания конфигурационного файла необходимо выполнить следующие команды в корневой папке проекта.
 ```shell
