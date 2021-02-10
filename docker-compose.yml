@@ -67,6 +67,19 @@ services:
       - cinema_net
     depends_on:
       - postgrescinema
+  rediscinema:
+    restart: unless-stopped
+    container_name: cinemaRedis
+    environment:
+      - REDIS_PASSWORD=$REDIS_PASSWORD
+      - REDIS_PORT=$REDIS_PORT
+    ports:
+      - 127.0.0.1:6379:$REDIS_PORT
+    build: ./redis/
+    volumes:
+      - ./redis/production:/data
+    networks:
+      - cinema_net
 volumes:
   web-static:
   dump-db:

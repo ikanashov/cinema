@@ -1,3 +1,6 @@
+#redis db production
+redis/production
+
 #postgres db production
 db/production
 name.basics.tsv
