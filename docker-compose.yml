@@ -26,12 +26,11 @@ services:
       - POSTGRES_SCHEMA=$POSTGRES_SCHEMA
       - DJANGO_HOST=$DJANGO_HOST
       - DJANGO_PORT=$DJANGO_PORT
+      - DJANGO_SECRET=$DJANGO_SECRET
     build: ./cinema_admin/
     command: /docker-entrypoint.sh
     volumes:
       - web-static:/cinema_admin/config/static
-    expose:
-      - $DJANGO_PORT
     networks: 
       - cinema_net
     depends_on:

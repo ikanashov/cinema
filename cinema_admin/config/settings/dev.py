@@ -2,6 +2,14 @@ from .base import *
 
 DEBUG = True
 
+def show_toolbar(request):
+    """
+    Function to determine whether to show the toolbar on a given page.
+    """
+    return DEBUG
+
+ROOT_URLCONF = 'config.urls.dev'
+
 INSTALLED_APPS += [
     'django_extensions',
     'debug_toolbar',
@@ -42,5 +50,8 @@ LOGGING = {
 
 INTERNAL_IPS = [
     '127.0.0.1',
-    '172.18.120.3',
 ]
+
+DEBUG_TOOLBAR_CONFIG = {
+    "SHOW_TOOLBAR_CALLBACK" : show_toolbar,
+}
