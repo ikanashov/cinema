@@ -35,6 +35,7 @@ DJANGO_SECRET=<>
 NGINX_HTTP_PORT=8080
 REDIS_PASSWORD=<>
 REDIS_PORT=9376
+ELASTIC_PASSWORD=<>
 ```
 
 POSTGRES_DB - имя базы данных  
@@ -49,6 +50,7 @@ NGINX_HTTP_PORT - внешний порт для веб-сервера nginx
 DJANGO_SECRET - секрет для Django (можно сгенерировать с помощью команды ```openssl rand -hex 32```)  
 REDIS_PORT - порт который слушает REDIS внутри сети docker-compose
 REDIS_PASSWORD - пароль для пользователя default (AUTH) (можно сгенерировать с помощью команды ```openssl rand -hex 32```)  
+ELASTIC_PASSWORD - пароль elasticsearch (можно сгенерировать с помощью команды ```openssl rand -hex 32```)  
   
 После создания конфигурационного файла необходимо выполнить следующие команды в корневой папке проекта.
 ```shell

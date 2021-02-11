@@ -80,6 +80,20 @@ services:
       - ./redis/production:/data
     networks:
       - cinema_net
+  elasticcinema01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
+    container_name: cinemaES01
+    environment:
+      - node.name=elasticcinema01
+      - discovery.type=single-node
+      - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=$ELASTIC_PASSWORD
+    volumes:
+      - ./elastic/production:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    networks:
+      - cinema_net
 volumes:
   web-static:
   dump-db:
