@@ -48,6 +48,9 @@
       "imdb_rating": {
         "type": "float"
       },
+      "imdb_tconst": {
+        "type": "keyword"
+      },
       "genre": {
         "type": "keyword"
       },
