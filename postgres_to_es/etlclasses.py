@@ -5,6 +5,29 @@ from typing import List
 
 
 @dataclass
+class ESPerson:
+    id: str
+    name: str
+
+
+@dataclass
+class ESMovie:
+    id: str
+    imdb_rating: float
+    imdb_tconst: str
+    filmtype: str
+    genre: str
+    title: str
+    description: str
+    directors_names: str
+    actors_names: str
+    writers_names: str
+    directors: List[ESPerson]
+    actors: List[ESPerson]
+    writers: List[ESPerson]
+
+
+@dataclass
 class MoviesGenre:
     name: str
     migrated_from: str
