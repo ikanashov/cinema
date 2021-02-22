@@ -28,6 +28,25 @@ class ESMovie:
 
 
 @dataclass
+class ETLFilmWork:
+    id: uuid.UUID
+    rating: float
+    imdb_tconst: str
+    type_name: str
+    genres: list
+    title: str
+    description: str
+    directors: list
+    actors: list
+    writers: list
+    modified: datetime
+
+@dataclass
+class ETLModifiedID:
+    id: uuid.UUID
+    modified: datetime
+
+@dataclass
 class MoviesGenre:
     name: str
     migrated_from: str
