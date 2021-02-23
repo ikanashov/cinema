@@ -54,4 +54,9 @@ class ETLProducerTable:
     field: str = ''
     ptable: str = ''
     pfield: str = ''
+    isrelation: bool = True
 
+@dataclass
+class ETLEnricherData:
+    table: ETLProducerTable
+    idlist: list

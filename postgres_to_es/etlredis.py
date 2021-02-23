@@ -29,6 +29,15 @@ class ETLRedis:
     def get_key(self, key: str) -> str:
         return self.prefix + key
     
+    def set_status(self, status: str) -> str:
+        key = self.prefix + 'status'
+        self.redis.set(key, status)
+        return self.redis.get(key)
+
+    def get_status(self) -> str:
+        key = self.prefix + 'status'
+        return self.redis.get(key)
+
     def set_lasttime(self, table: str, lasttime: datetime) -> datetime:
         key = self.prefix + table + ':lasttime'
         self.redis.set(key, lasttime.isoformat())
@@ -37,8 +46,12 @@ class ETLRedis:
 
     def get_lasttime(self, table: str) -> datetime:
         key = self.prefix + table + ':lasttime'
-        time = self.redis.get(key)
-        return time
+        try:
+            time = self.redis.get(key)
+            return time
+        except redis.ConnectionError as err:
+            logger.debug(err)
+            raise NameError('redis not answer')
 
     def push_filmid(self, id: str) -> str:
         script = f'redis.call("LREM",KEYS[1], "0", ARGV[1]);'

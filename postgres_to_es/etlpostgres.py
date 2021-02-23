@@ -82,7 +82,8 @@ class ETLPG:
             ptable=sql.Identifier(producer.ptable),
             pfield=sql.Identifier(producer.pfield)
         )
-        filmids = [id for id in self.pg_multy_query(query, (idlists, limit, offset, ))]
+        filmids = [id for (id,) in self.pg_multy_query(query, (idlists, limit, offset, ))]
+        #logger.debug(f'!!!! Watch here {filmids}')
         return filmids
 
     def get_filmsbyid(self, idlists: tuple) -> List[ETLFilmWork]:

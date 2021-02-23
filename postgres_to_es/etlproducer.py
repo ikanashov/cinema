@@ -6,18 +6,24 @@ from dotenv import load_dotenv
 
 from loguru import logger
 
-from etlredis import ETLRedis
-from etlpostgres import ETLPG
-from etlclasses import ETLProducerTable
+if __name__ == '__main__':
+    from etlredis import ETLRedis
+    from etlpostgres import ETLPG
+    from etlclasses import ETLProducerTable, ETLEnricherData
+    from etldecorator import coroutine
+else:
+    from .etlredis import ETLRedis
+    from .etlpostgres import ETLPG
+    from .etlclasses import ETLProducerTable, ETLEnricherData
+    from .etldecorator import coroutine
 
 
 class ETLProducer:
     producer_table = [
-        ETLProducerTable(table='djfilmwork'),
+        ETLProducerTable(table='djfilmwork', isrelation=False),
         ETLProducerTable(table='djfilmperson', field='film_work_id', ptable='djfilmworkperson', pfield='person_id'),
         ETLProducerTable(table='djfilmgenre', field='film_work_id', ptable='djfilmworkgenre', pfield='genre_id'),
-        ETLProducerTable(table='djfilmype', field='id', ptable='djfilmwork', pfield='type_id'),
-
+        ETLProducerTable(table='djfilmtype', field='id', ptable='djfilmwork', pfield='type_id'),
     ]
 
     def __init__(self, envfile='../.env'):
@@ -29,43 +35,54 @@ class ETLProducer:
         self.redis = ETLRedis()
         self.pgbase = ETLPG()
 
-    def producer(self, table: str) -> list:
-        lasttime = self.redis.get_lasttime(table) or self.pgbase.get_first_object_time(table)
-        idlists = self.pgbase.get_updated_object_id(lasttime, table, self.limit)
-        try:
-            lasttime = idlists[-1].modified
-            lasttime = self.redis.set_lasttime(table, idlists[-1].modified)
-        except IndexError:
-            logger.debug(f'No more new data in {table}')
-        idlists = [filmid.id for filmid in idlists]
-        return idlists
+    def worker(self, producer):
+        """
+        This function is initial Generator
+        """
+        while self.redis.get_status() == 'run':
+            for table in self.producer_table:
+                #logger.debug(table)
+                producer.send(table)
+                sleep(1)
     
-    def enricher(self, ptable: ETLProducerTable, idlists: list) -> list:
-        offset = 0
-        isupdatedid = True if len(idlists) > 0 else False
-        while isupdatedid:
-            filmids = self.pgbase.get_updated_film_id(ptable, tuple(idlists), self.limit, offset)
-            for id in filmids:
-                self.redis.push_filmid(id[0])
-            if len(filmids) == self.limit:
-                offset += self.limit
-            else:
-                isupdatedid = False
+    @coroutine
+    def producer(self, enricher):
+        while True:
+            data: ETLProducerTable = (yield)
+
+            lasttime = self.redis.get_lasttime(data.table) or self.pgbase.get_first_object_time(data.table)
+            idlist = self.pgbase.get_updated_object_id(lasttime, data.table, self.limit)
+            try:
+                #Why two last time ?
+                lasttime = idlist[-1].modified
+                lasttime = self.redis.set_lasttime(data.table, idlist[-1].modified)
+            except IndexError:
+                logger.debug(f'No more new data in {data.table}')
+            idlist = [filmid.id for filmid in idlist]
+            logger.debug(idlist)
+            enricher.send(ETLEnricherData(data, idlist))
+    
+    @coroutine
+    def enricher(self):
+        while True:
+            data: ETLEnricherData = (yield)
+            offset = 0
+            isupdatedid = True if len(data.idlist) > 0 else False
+            while isupdatedid:
+                filmids = (
+                    self.pgbase.get_updated_film_id(data.table, tuple(data.idlist), self.limit, offset) 
+                    if data.table.isrelation else data.idlist
+                )
+                [self.redis.push_filmid(id) for id in filmids]
+                if (len(filmids) == self.limit) and (data.table.isrelation):
+                    offset += self.limit
+                else:
+                    isupdatedid = False
 
 if __name__ == '__main__':
     z = ETLProducer()
-    dodo = True
-    while dodo:
-        idlists = z.producer('djfilmgenre')
-        logger.debug(len(idlists))
-        z.enricher(ETLProducerTable(table='djfilmgenre', field='film_work_id', ptable='djfilmworkgenre', pfield='genre_id'), idlists)
-        sleep(2)
-        idlists = z.producer('djfilmperson')
-        logger.debug(len(idlists))
-        z.enricher(ETLProducerTable(table='djfilmperson', field='film_work_id', ptable='djfilmworkperson', pfield='person_id'), idlists)
-        sleep(2)
-        idlists = z.producer('djfilmtype')
-        logger.debug(len(idlists))
-        z.enricher(ETLProducerTable(table='djfilmype', field='id', ptable='djfilmwork', pfield='type_id'), idlists)
-        sleep(2)
-    #z.redis.redis.lpos('cinema:filmids', '032b31a5-e63d-41ed-a851-8d757fa70c8e')
+    z.redis.set_status('run')
+    
+    enricher = z.enricher()
+    producer = z.producer(enricher)
+    z.worker(producer)
