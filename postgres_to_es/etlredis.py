@@ -16,6 +16,9 @@ class ETLRedis:
             load_dotenv(dotenv_path)
 
         self.prefix = os.getenv('REDIS_PREFIX', '') + ':'
+        self.queuename = self.prefix + 'filmids'
+        self.workqueuename = self.queuename + ':work'
+
         self.redis = redis.Redis(
             host=os.getenv('REDIS_HOST', '127.0.0.1'),
             port=os.getenv('REDIS_PORT', '6379'),
@@ -38,14 +41,27 @@ class ETLRedis:
         return time
 
     def push_filmid(self, id: str) -> str:
-        queuename = self.prefix + 'filmids'
         script = f'redis.call("LREM",KEYS[1], "0", ARGV[1]);'
         script += f'return redis.call("LPUSH", KEYS[1], ARGV[1])'
-        self.redis.eval(script, 1, queuename, id)
+        self.redis.eval(script, 1, self.queuename, id)
 
+    def get_filmid_for_work(self, size) -> list:
+        size -= self.redis.llen(self.workqueuename)
+        while size > 0:
+            self.redis.rpoplpush(self.queuename, self.workqueuename)
+            size -=1
+        len = self.redis.llen(self.workqueuename)
+        workid = self.redis.lrange(self.workqueuename, 0, len)
+        return workid
+    
+    def del_work_queuename(self):
+        self.redis.delete(self.workqueuename)
+    
+    #remove
     def ping(self):
         logger.debug(self.redis.ping())
-
+    
+    #remove
     def test(self):
         self.redis.set(self.get_key('test'), 'test1')
         logger.debug(self.redis.get(self.get_key('test')))

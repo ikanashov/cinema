@@ -1,24 +1,23 @@
-from logging import debug, log
 import os
 from datetime import date, datetime, timezone
+from time import sleep
 
 from dotenv import load_dotenv
 
 from loguru import logger
 
-if __name__ == '__main__':
-    from etlredis import ETLRedis
-    from etlpostgres import ETLPG
-else:
-    from .etlredis import ETLRedis
-    from .etlpostgres import ETLPG
+from etlredis import ETLRedis
+from etlpostgres import ETLPG
+from etlclasses import ETLProducerTable
+
 
 class ETLProducer:
     producer_table = [
-        'djfilmwork',
-        'djfilmperson',
-        'djfilmgenre',
-        'djfilmtype',
+        ETLProducerTable(table='djfilmwork'),
+        ETLProducerTable(table='djfilmperson', field='film_work_id', ptable='djfilmworkperson', pfield='person_id'),
+        ETLProducerTable(table='djfilmgenre', field='film_work_id', ptable='djfilmworkgenre', pfield='genre_id'),
+        ETLProducerTable(table='djfilmype', field='id', ptable='djfilmwork', pfield='type_id'),
+
     ]
 
     def __init__(self, envfile='../.env'):
@@ -41,11 +40,11 @@ class ETLProducer:
         idlists = [filmid.id for filmid in idlists]
         return idlists
     
-    def enricher(self, table: str, idlists: list) -> list:
+    def enricher(self, ptable: ETLProducerTable, idlists: list) -> list:
         offset = 0
         isupdatedid = True if len(idlists) > 0 else False
         while isupdatedid:
-            filmids = self.pgbase.get_filmgenreupdated_id(tuple(idlists), self.limit, offset)
+            filmids = self.pgbase.get_updated_film_id(ptable, tuple(idlists), self.limit, offset)
             for id in filmids:
                 self.redis.push_filmid(id[0])
             if len(filmids) == self.limit:
@@ -55,8 +54,18 @@ class ETLProducer:
 
 if __name__ == '__main__':
     z = ETLProducer()
-    idlists = z.producer('djfilmgenre')
-    logger.debug(idlists)
-    logger.debug(len(idlists))
-    z.enricher('djfimlgenre', idlists)
+    dodo = True
+    while dodo:
+        idlists = z.producer('djfilmgenre')
+        logger.debug(len(idlists))
+        z.enricher(ETLProducerTable(table='djfilmgenre', field='film_work_id', ptable='djfilmworkgenre', pfield='genre_id'), idlists)
+        sleep(2)
+        idlists = z.producer('djfilmperson')
+        logger.debug(len(idlists))
+        z.enricher(ETLProducerTable(table='djfilmperson', field='film_work_id', ptable='djfilmworkperson', pfield='person_id'), idlists)
+        sleep(2)
+        idlists = z.producer('djfilmtype')
+        logger.debug(len(idlists))
+        z.enricher(ETLProducerTable(table='djfilmype', field='id', ptable='djfilmwork', pfield='type_id'), idlists)
+        sleep(2)
     #z.redis.redis.lpos('cinema:filmids', '032b31a5-e63d-41ed-a851-8d757fa70c8e')
