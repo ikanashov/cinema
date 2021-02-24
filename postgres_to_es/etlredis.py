@@ -8,6 +8,7 @@ import redis
 
 from loguru import logger
 
+from etldecorator import backoff
 
 class ETLRedis:
     def __init__(self, envfile='../.env'):
@@ -29,13 +30,13 @@ class ETLRedis:
     def get_key(self, key: str) -> str:
         return self.prefix + key
     
-    def set_status(self, status: str) -> str:
-        key = self.prefix + 'status'
+    def set_status(self, service: str, status: str) -> str:
+        key = self.prefix + 'status:'+ service
         self.redis.set(key, status)
         return self.redis.get(key)
-
-    def get_status(self) -> str:
-        key = self.prefix + 'status'
+    
+    def get_status(self, service: str) -> str:
+        key = self.prefix + 'status:'+ service
         return self.redis.get(key)
 
     def set_lasttime(self, table: str, lasttime: datetime) -> datetime:
@@ -60,11 +61,14 @@ class ETLRedis:
 
     def get_filmid_for_work(self, size) -> list:
         size -= self.redis.llen(self.workqueuename)
+        logger.debug(size)
+        logger.debug(self.redis.llen(self.workqueuename))
         while size > 0:
             self.redis.rpoplpush(self.queuename, self.workqueuename)
             size -=1
         len = self.redis.llen(self.workqueuename)
         workid = self.redis.lrange(self.workqueuename, 0, len)
+        logger.debug(workid)
         return workid
     
     def del_work_queuename(self):

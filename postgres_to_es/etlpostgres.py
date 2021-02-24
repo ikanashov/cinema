@@ -10,6 +10,7 @@ import psycopg2
 from psycopg2 import sql
 
 from etlclasses import ETLFilmWork, ETLModifiedID, ETLProducerTable
+from etldecorator import backoff
 
 
 class ETLPG:
@@ -40,7 +41,10 @@ class ETLPG:
         if os.path.exists(dotenv_path):
             load_dotenv(dotenv_path)
 
-        self.conn = psycopg2.connect(
+        self.conn = self.connect()
+    
+    def connect(self):
+        return psycopg2.connect(
             dbname=os.getenv('POSTGRES_DB', 'postgres'),
             user=os.getenv('POSTGRES_USER', 'postgres'),
             password=os.getenv('POSTGRES_PASSWORD', ''),
@@ -49,17 +53,24 @@ class ETLPG:
             options='-c search_path=' + os.getenv('POSTGRES_SCHEMA', 'public'),
         )
 
+    @backoff(1)
     def pg_single_query(self, sqlquery: str, queryargs: tuple) -> tuple:
         with self.conn as conn, conn.cursor() as cur:
             cur.execute(sqlquery, queryargs)
             row = cur.fetchone()
         return row
 
+    @backoff(1)
     def pg_multy_query(self, sqlquery: str, queryargs: tuple) -> list:
+        #logger.debug(sqlquery)
+        #logger.debug(queryargs)
+        logger.debug(f'Connection info={self.conn.info} closed={self.conn.closed} status={self.conn.status}')
+        self.conn = self.connect() if self.conn.closed != 0 else self.conn
         with self.conn as conn, conn.cursor() as cur:
             #logger.debug(cur.mogrify(sqlquery, queryargs))
             cur.execute(sqlquery, queryargs)
             rows = cur.fetchall()
+        #logger.debug(rows)
         return rows
 
     def get_first_object_time(self, table: str) -> datetime:

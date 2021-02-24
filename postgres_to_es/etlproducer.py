@@ -1,5 +1,4 @@
 import os
-from datetime import date, datetime, timezone
 from time import sleep
 
 from dotenv import load_dotenv
@@ -7,11 +6,13 @@ from dotenv import load_dotenv
 from loguru import logger
 
 if __name__ == '__main__':
+    from etldecorator import backoff
     from etlredis import ETLRedis
     from etlpostgres import ETLPG
     from etlclasses import ETLProducerTable, ETLEnricherData
     from etldecorator import coroutine
 else:
+    from .etldecorator import backoff
     from .etlredis import ETLRedis
     from .etlpostgres import ETLPG
     from .etlclasses import ETLProducerTable, ETLEnricherData
@@ -39,7 +40,7 @@ class ETLProducer:
         """
         This function is initial Generator
         """
-        while self.redis.get_status() == 'run':
+        while self.redis.get_status('producer') == 'run':
             for table in self.producer_table:
                 #logger.debug(table)
                 producer.send(table)
@@ -79,10 +80,16 @@ class ETLProducer:
                 else:
                     isupdatedid = False
 
+    def start(self):
+        if self.redis.get_status('producer') == 'run':
+            logger.debug('ETL Producer already started, please stop it before run!')
+            return 
+        else:
+            self.redis.set_status('producer', 'run')
+        
+        enricher = self.enricher()
+        producer = self.producer(enricher)
+        self.worker(producer)
+
 if __name__ == '__main__':
-    z = ETLProducer()
-    z.redis.set_status('run')
-    
-    enricher = z.enricher()
-    producer = z.producer(enricher)
-    z.worker(producer)
+    ETLProducer().start()
