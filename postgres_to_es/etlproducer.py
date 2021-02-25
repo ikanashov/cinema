@@ -81,6 +81,9 @@ class ETLProducer:
                     isupdatedid = False
 
     def start(self):
+        #remove it
+        self.redis.set_status('producer', 'stop')
+
         if self.redis.get_status('producer') == 'run':
             logger.debug('ETL Producer already started, please stop it before run!')
             return 

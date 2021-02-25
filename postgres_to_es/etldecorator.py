@@ -1,8 +1,9 @@
+import random
 from functools import wraps
-from logging import exception
 from time import sleep
 
 from loguru import logger
+
 
 def coroutine(coro):
     @wraps(coro)
@@ -12,30 +13,43 @@ def coroutine(coro):
         return fn
     return coroinit
 
-def backoff(sleep_time=5):
+def _sleep_time(start_sleep_time: float, border_sleep_time: float, factor: int, attempt: int) -> float:
+    try:
+        sleep_time = random.uniform(start_sleep_time, start_sleep_time * factor) * factor ** attempt
+    except OverflowError:
+        logger.debug('Overflow in factor ** attemt, sleep_time = border_sleep_time')
+        sleep_time = border_sleep_time
+    return min(border_sleep_time, sleep_time)
+
+def backoff(start_sleep_time=0.1, border_sleep_time=30, factor=2):
+    if start_sleep_time < 0.001:
+        logger.debug('start_sleep_time fewer than 0.001 set to 0.001')
+        start_sleep_time = 0.001
     def decorator(target):
         @wraps(target)
         def retry(*args, **kwargs):
-            count = 0
+            attempt = 0
             while True:
+                sleep_time = _sleep_time(start_sleep_time, border_sleep_time, factor, attempt)
                 try:
-                    count += 1
-                    logger.debug(target.__name__)
-                    #logger.debug(f'I am in backoff decorator and I will sleep {sleep_time} second')
-                    logger.debug(f'This is call number {count}')
+                    attempt += 1
+                    service_name = target.__name__
+                    logger.debug(service_name)
+                    logger.debug(f'This is call number {attempt}')
+                    logger.debug(f'I am in backoff decorator and I will sleep {sleep_time} second')
                     #logger.debug(*args)
-                    #logger.debug(**kwargs)
-                    #sleep(sleep_time)
+                    sleep(sleep_time)
                     ret = target(*args, **kwargs)
-                except:
-                    logger.debug(f'OH NO EXEPTION!!!! I WILL WAIT  {sleep_time * 2} seconds and try again')
-                    sleep(sleep_time * 2)
+                except Exception as e:
+                    logger.debug(f'OH NO EXEPTION!!!! I WILL WAIT  {sleep_time} seconds and try again')
+                    logger.debug(e)
+                    #sleep(sleep_time * 2)
                     #return target(*args, **kwargs)
                 else:
                     return ret
         return retry
     return decorator
-
+    
 z ='''
 def on_exception(wait_gen,
                  exception,

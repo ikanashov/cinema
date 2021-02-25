@@ -43,6 +43,7 @@ class ETLPG:
 
         self.conn = self.connect()
     
+    @backoff(0)
     def connect(self):
         return psycopg2.connect(
             dbname=os.getenv('POSTGRES_DB', 'postgres'),
@@ -53,18 +54,19 @@ class ETLPG:
             options='-c search_path=' + os.getenv('POSTGRES_SCHEMA', 'public'),
         )
 
-    @backoff(1)
+    @backoff(0)
     def pg_single_query(self, sqlquery: str, queryargs: tuple) -> tuple:
+        self.conn = self.connect() if self.conn.closed != 0 else self.conn
         with self.conn as conn, conn.cursor() as cur:
             cur.execute(sqlquery, queryargs)
             row = cur.fetchone()
         return row
 
-    @backoff(1)
+    @backoff(0)
     def pg_multy_query(self, sqlquery: str, queryargs: tuple) -> list:
         #logger.debug(sqlquery)
         #logger.debug(queryargs)
-        logger.debug(f'Connection info={self.conn.info} closed={self.conn.closed} status={self.conn.status}')
+        #logger.debug(f'Connection info={self.conn.info} closed={self.conn.closed} status={self.conn.status}')
         self.conn = self.connect() if self.conn.closed != 0 else self.conn
         with self.conn as conn, conn.cursor() as cur:
             #logger.debug(cur.mogrify(sqlquery, queryargs))
