@@ -7,7 +7,6 @@ from elasticsearch import TransportError
 
 from loguru import logger
 
-from esindex import CINEMA_INDEX_BODY as esbody
 from etlclasses import ESMovie
 from etldecorator import backoff
 from etlsettings import ETLSettings
@@ -23,8 +22,6 @@ class ETLElastic:
         self.index_name = cnf.elastic_index
 
         self.es = self.connect()
-
-        self.create_index(self.index_name, esbody)
 
     def connect(self) -> Elasticsearch:
         return Elasticsearch(self.hosts, port=self.port, scheme=self.scheme, http_auth=self.http_auth)

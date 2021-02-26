@@ -12,5 +12,6 @@ FROM base
 
 COPY --from=builder /install /usr/local
 RUN apk --no-cache add libpq
+COPY docker-entrypoint.sh /
 COPY *.py /pg2es/
 WORKDIR /pg2es

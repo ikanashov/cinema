@@ -2,6 +2,7 @@ from typing import List
 
 from loguru import logger
 
+from esindex import CINEMA_INDEX_BODY as esbody
 from etlclasses import ESMovie, ESPerson, ETLFilmWork
 from etldecorator import coroutine, some_sleep
 from etlelastic import ETLElastic
@@ -15,6 +16,7 @@ class ETLConsumer:
     def __init__(self):
         cnf = ETLSettings()
 
+        self.index_name = cnf.elastic_index
         self.limit = cnf.etl_size_limit
 
         self.redis = ETLRedis()
@@ -55,6 +57,7 @@ class ETLConsumer:
             return
         else:
             self.redis.set_status('consumer', 'run')
+            self.es.create_index(self.index_name, esbody)
 
         putter = self.put_films_to_ES()
         self.get_filmsid_from_redis(putter)
