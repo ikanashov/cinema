@@ -2,9 +2,9 @@ CINEMA_INDEX_BODY = '''
 {
   "settings": {
     "index": {
-        "number_of_shards": 1,  
+        "number_of_shards": 1,
         "number_of_replicas": 0
-    },      
+    },
     "refresh_interval": "1s",
     "analysis": {
       "filter": {
@@ -66,7 +66,7 @@ CINEMA_INDEX_BODY = '''
         "type": "text",
         "analyzer": "ru_en",
         "fields": {
-          "raw": { 
+          "raw": {
             "type":  "keyword"
           }
         }

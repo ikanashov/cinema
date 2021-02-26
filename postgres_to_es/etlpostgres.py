@@ -1,16 +1,11 @@
-import os
 from datetime import datetime, timedelta
 from typing import List
 
-from dotenv import load_dotenv
-
-from loguru import logger
-
-import psycopg2
-from psycopg2 import sql
+from psycopg2 import connect as pgconnect, sql
 
 from etlclasses import ETLFilmWork, ETLModifiedID, ETLProducerTable
 from etldecorator import backoff
+from etlsettings import ETLSettings
 
 
 class ETLPG:
@@ -18,7 +13,7 @@ class ETLPG:
     UPDATED = 'SELECT id, modified FROM {} WHERE modified  > %s ORDER BY modified LIMIT %s'
     FILMUPDATED = 'SELECT DISTINCT {field} FROM {ptable} WHERE {pfield} in %s ORDER BY {field} LIMIT %s OFFSET %s'
     GETFILMSBYID = '''
-    SELECT 
+    SELECT
         fw.id, fw.rating, fw.imdb_tconst, ft.name,
         ARRAY_AGG(DISTINCT fg.name ) AS genres,
         fw.title, fw.description,
@@ -27,34 +22,31 @@ class ETLPG:
         ARRAY_AGG(DISTINCT fp.id || ' : ' || fp.full_name) FILTER (WHERE fwp.role = 'writer') AS writers,
         fw.modified
     FROM djfilmwork AS fw
-    LEFT OUTER JOIN djfilmworkperson AS fwp ON fw.id = fwp.film_work_id 
-    LEFT OUTER JOIN djfilmperson AS fp ON fwp.person_id = fp.id 
-    LEFT OUTER JOIN djfilmworkgenre AS fwg ON fw.id = fwg.film_work_id 
-    LEFT OUTER JOIN djfilmgenre AS fg ON fwg.genre_id = fg.id 
-    INNER JOIN djfilmtype AS ft ON fw.type_id = ft.id 
+    LEFT OUTER JOIN djfilmworkperson AS fwp ON fw.id = fwp.film_work_id
+    LEFT OUTER JOIN djfilmperson AS fp ON fwp.person_id = fp.id
+    LEFT OUTER JOIN djfilmworkgenre AS fwg ON fw.id = fwg.film_work_id
+    LEFT OUTER JOIN djfilmgenre AS fg ON fwg.genre_id = fg.id
+    INNER JOIN djfilmtype AS ft ON fw.type_id = ft.id
     WHERE fw.id IN %s
     GROUP BY fw.id, ft.id
     '''
-        
-    def __init__(self, envfile='../.env'):
-        dotenv_path = os.path.join(os.path.dirname(__file__), envfile)
-        if os.path.exists(dotenv_path):
-            load_dotenv(dotenv_path)
 
+    def __init__(self):
+        self.cnf = ETLSettings()
         self.conn = self.connect()
-    
-    @backoff(0)
+
+    @backoff(start_sleep_time=0.1)
     def connect(self):
-        return psycopg2.connect(
-            dbname=os.getenv('POSTGRES_DB', 'postgres'),
-            user=os.getenv('POSTGRES_USER', 'postgres'),
-            password=os.getenv('POSTGRES_PASSWORD', ''),
-            host=os.getenv('POSTGRES_HOST', 'localhost'),
-            port=int(os.getenv('POSTGRES_PORT', '5432')),
-            options='-c search_path=' + os.getenv('POSTGRES_SCHEMA', 'public'),
+        return pgconnect(
+            dbname=self.cnf.postgres_db,
+            user=self.cnf.postgres_user,
+            password=self.cnf.postgres_password,
+            host=self.cnf.postgres_host,
+            port=self.cnf.postgres_port,
+            options='-c search_path=' + self.cnf.postgres_schema,
         )
 
-    @backoff(0)
+    @backoff(start_sleep_time=0.1)
     def pg_single_query(self, sqlquery: str, queryargs: tuple) -> tuple:
         self.conn = self.connect() if self.conn.closed != 0 else self.conn
         with self.conn as conn, conn.cursor() as cur:
@@ -62,17 +54,12 @@ class ETLPG:
             row = cur.fetchone()
         return row
 
-    @backoff(0)
+    @backoff(start_sleep_time=0.1)
     def pg_multy_query(self, sqlquery: str, queryargs: tuple) -> list:
-        #logger.debug(sqlquery)
-        #logger.debug(queryargs)
-        #logger.debug(f'Connection info={self.conn.info} closed={self.conn.closed} status={self.conn.status}')
         self.conn = self.connect() if self.conn.closed != 0 else self.conn
         with self.conn as conn, conn.cursor() as cur:
-            #logger.debug(cur.mogrify(sqlquery, queryargs))
             cur.execute(sqlquery, queryargs)
             rows = cur.fetchall()
-        #logger.debug(rows)
         return rows
 
     def get_first_object_time(self, table: str) -> datetime:
@@ -96,10 +83,8 @@ class ETLPG:
             pfield=sql.Identifier(producer.pfield)
         )
         filmids = [id for (id,) in self.pg_multy_query(query, (idlists, limit, offset, ))]
-        #logger.debug(f'!!!! Watch here {filmids}')
         return filmids
 
     def get_filmsbyid(self, idlists: tuple) -> List[ETLFilmWork]:
-        films = [ETLFilmWork(*row)  for row in self.pg_multy_query(self.GETFILMSBYID, (idlists,))]
+        films = [ETLFilmWork(*row) for row in self.pg_multy_query(self.GETFILMSBYID, (idlists,))]
         return films
-

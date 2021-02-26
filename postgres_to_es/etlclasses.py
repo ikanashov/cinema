@@ -56,6 +56,7 @@ class ETLProducerTable:
     pfield: str = ''
     isrelation: bool = True
 
+
 @dataclass
 class ETLEnricherData:
     table: ETLProducerTable
