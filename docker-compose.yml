@@ -93,7 +93,7 @@ services:
     networks:
       - cinema_net
   pg2escinema:
-    restart: unless-stopped
+    restart: 'no'
     container_name: pg2es
     environment:
       - POSTGRES_DB=$POSTGRES_DB
