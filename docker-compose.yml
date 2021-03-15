@@ -74,6 +74,8 @@ services:
     build: ./redis/
     volumes:
       - ./redis/production:/data
+    ports:
+      - $REDIS_PORT:$REDIS_PORT
     networks:
       - cinema_net
   elasticcinema01:
@@ -83,9 +85,15 @@ services:
       - node.name=elasticcinema01
       - discovery.type=single-node
       - xpack.security.enabled=true
+      - ELASTIC_USER=$ELASTIC_USER
       - ELASTIC_PASSWORD=$ELASTIC_PASSWORD
+      - ELASTIC_INDEX=$ELASTIC_INDEX
+      - path.repo=/usr/share/elasticsearch/backup
     volumes:
       - ./elastic/production:/usr/share/elasticsearch/data
+      - ./elastic/backup:/usr/share/elasticsearch/backup
+    ports:
+      - $ELASTIC_PORT:$ELASTIC_PORT
     networks:
       - cinema_net
   pg2escinema:
